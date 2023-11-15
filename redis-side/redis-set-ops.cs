@@ -5,6 +5,7 @@ using System.Linq;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 
+[MemoryDiagnoser]
 public class RedisBenchmark
 {
     private readonly ConnectionMultiplexer redis;
@@ -19,7 +20,7 @@ public class RedisBenchmark
 
     public RedisBenchmark()
     {
-        redis = ConnectionMultiplexer.Connect("localhost:6379");
+        redis = ConnectionMultiplexer.Connect("crunchy-redis:6379");
         db = redis.GetDatabase();
         PopulateSets();
     }
@@ -36,24 +37,24 @@ public class RedisBenchmark
     }
 
     [Benchmark]
-    public void MeasureSetIntersection()
+    public RedisValue[] MeasureSetIntersection()
     {
         var keys = Enumerable.Range(1, NumberOfSets).Select(i => (RedisKey)$"set{i}").ToArray();
-        db.SetCombine(SetOperation.Intersect, keys);
+        return db.SetCombine(SetOperation.Intersect, keys);
     }
 
     [Benchmark]
-    public void MeasureSetUnion()
+    public RedisValue[] MeasureSetUnion()
     {
         var keys = Enumerable.Range(1, NumberOfSets).Select(i => (RedisKey)$"set{i}").ToArray();
-        db.SetCombine(SetOperation.Union, keys);
+        return db.SetCombine(SetOperation.Union, keys);
     }
 
     [Benchmark]
-    public void MeasureSetDifference()
+    public RedisValue[] MeasureSetDifference()
     {
         var keys = Enumerable.Range(1, NumberOfSets).Select(i => (RedisKey)$"set{i}").ToArray();
-        db.SetCombine(SetOperation.Difference, keys);
+        return db.SetCombine(SetOperation.Difference, keys);
     }
 }
 

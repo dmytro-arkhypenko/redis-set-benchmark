@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+[MemoryDiagnoser]
 public class RedisBenchmark
 {
     private ConnectionMultiplexer redis;
@@ -23,7 +24,7 @@ public class RedisBenchmark
     [GlobalSetup]
     public void Setup()
     {
-        redis = ConnectionMultiplexer.Connect("localhost:6379");
+        redis = ConnectionMultiplexer.Connect("crunchy-redis:6379");
         db = redis.GetDatabase();
         PopulateSets();
     }
@@ -47,15 +48,22 @@ public class RedisBenchmark
         return new HashSet<int>(MessagePackSerializer.Deserialize<int[]>(byteValue));
     }
 
+    private HashSet<int>[] FetchAllSets()
+    {
+        return Enumerable.Range(1, NumberOfSets)
+                     .AsParallel()
+                     .Select(i => FetchSet($"set{i}"))
+                     .ToArray();
+    }
+
     [Benchmark]
     public HashSet<int> MeasureSetIntersection()
     {
-        var sets = Enumerable.Range(1, NumberOfSets).Select(i => (RedisKey)$"set{i}").ToArray();
-        var result = FetchSet(sets[0]);
+        var sets = FetchAllSets();
+        var result = sets[0];
         for (int i = 1; i < sets.Length; i++)
         {
-            var setN = FetchSet(sets[i]);
-            result.IntersectWith(setN);
+            result.IntersectWith(sets[i]);
         }
         return result;
     }
@@ -63,12 +71,11 @@ public class RedisBenchmark
     [Benchmark]
     public HashSet<int> MeasureSetUnion()
     {
-        var sets = Enumerable.Range(1, NumberOfSets).Select(i => (RedisKey)$"set{i}").ToArray();
-        var result = FetchSet(sets[0]);
+        var sets = FetchAllSets();
+        var result = sets[0];
         for (int i = 1; i < sets.Length; i++)
         {
-            var setN = FetchSet(sets[i]);
-            result.UnionWith(setN);
+            result.UnionWith(sets[i]);
         }
         return result;
     }
@@ -76,17 +83,14 @@ public class RedisBenchmark
     [Benchmark]
     public HashSet<int> MeasureSetDifference()
     {
-        var sets = Enumerable.Range(1, NumberOfSets).Select(i => (RedisKey)$"set{i}").ToArray();
-        var result = FetchSet(sets[0]);
+        var sets = FetchAllSets();
+        var result = sets[0];
         for (int i = 1; i < sets.Length; i++)
         {
-            var setN = FetchSet(sets[i]);
-            result.ExceptWith(setN);
+            result.ExceptWith(sets[i]);
         }
         return result;
     }
-
-
 }
 
 public class Program
