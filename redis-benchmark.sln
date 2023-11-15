@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.34031.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "redis-benchmark", "redis-side\redis-benchmark.csproj", "{F107C556-F7DB-46C2-A6B2-F1F3F6E39964}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "client-benchmark", "client-side\client-benchmark.csproj", "{291C17D3-A0E0-4E1B-B759-6C7EA502C982}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F107C556-F7DB-46C2-A6B2-F1F3F6E39964}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F107C556-F7DB-46C2-A6B2-F1F3F6E39964}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F107C556-F7DB-46C2-A6B2-F1F3F6E39964}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F107C556-F7DB-46C2-A6B2-F1F3F6E39964}.Release|Any CPU.Build.0 = Release|Any CPU
+		{291C17D3-A0E0-4E1B-B759-6C7EA502C982}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{291C17D3-A0E0-4E1B-B759-6C7EA502C982}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{291C17D3-A0E0-4E1B-B759-6C7EA502C982}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{291C17D3-A0E0-4E1B-B759-6C7EA502C982}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {461AD197-09DE-40ED-8CCA-F76420149600}
+	EndGlobalSection
+EndGlobal
