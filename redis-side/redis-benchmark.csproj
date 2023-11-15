@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <!-- Add package references here -->
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.48" />
   </ItemGroup>
 
