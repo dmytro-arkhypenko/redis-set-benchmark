@@ -8,8 +8,8 @@ using BenchmarkDotNet.Jobs;
 [MemoryDiagnoser]
 public class RedisBenchmark
 {
-    private readonly ConnectionMultiplexer redis;
-    private readonly IDatabase db;
+    private ConnectionMultiplexer redis;
+    private IDatabase db;
     private const int MaxValue = 100000;
     private const int SetSize = 50000;
     private const int TotalSets = 20;
@@ -18,12 +18,16 @@ public class RedisBenchmark
     [Params(3, 5, 7, 10, 15, 20)]
     public int NumberOfSets { get; set; }
 
-    public RedisBenchmark()
+
+    [GlobalSetup]
+    public void Setup()
     {
-        redis = ConnectionMultiplexer.Connect("crunchy-redis:6379");
+        var redisEndpoint = Environment.GetEnvironmentVariable("REDIS_ENDPOINT");
+        redis = ConnectionMultiplexer.Connect(redisEndpoint);
         db = redis.GetDatabase();
         PopulateSets();
     }
+
 
     private void PopulateSets()
     {
@@ -62,6 +66,14 @@ class Program
 {
     static void Main(string[] args)
     {
+        if (args.Length == 0)
+        {
+            Console.WriteLine("Please provide the Redis endpoint as a command-line argument.");
+            return;
+        }
+
+        Environment.SetEnvironmentVariable("REDIS_ENDPOINT", args[0], EnvironmentVariableTarget.Process);
+
         var config = ManualConfig.Create(DefaultConfig.Instance)
             .With(Job.Default
                 .WithWarmupCount(1)    // Number of warmup iterations
