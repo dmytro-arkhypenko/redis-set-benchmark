@@ -82,6 +82,25 @@ public class RedisBenchmark
         return result;
     }
 
+    public static HashSet<T> ParallelUnionSets<T>(IEnumerable<HashSet<T>> listOfSets)
+    {
+        return listOfSets
+            .AsParallel()
+            .Aggregate(new HashSet<T>(),
+                       (accumulatedSet, nextSet) =>
+                       {
+                           accumulatedSet.UnionWith(nextSet);
+                           return accumulatedSet;
+                       });
+    }
+
+    [Benchmark]
+    public HashSet<int> MeasureSetUnionParallel2()
+    {
+        var sets = FetchAllSets();
+        return ParallelUnionSets(sets);
+    }
+
     [Benchmark]
     public int[] MeasureSetUnionParallel()
     {
