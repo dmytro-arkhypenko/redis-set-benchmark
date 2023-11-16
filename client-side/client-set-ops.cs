@@ -4,9 +4,8 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using MessagePack;
 using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
+namespace client_benchmark;
 
 [MemoryDiagnoser]
 public class RedisBenchmark
@@ -16,15 +15,18 @@ public class RedisBenchmark
     private const int MaxValue = 100000;
     private const int SetSize = 50000;
     private const int TotalSets = 20;
-    private Random random = new Random(123456789);
+    private Random random = new(123456789);
+    private MessagePackSerializerOptions options = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
 
+    // Serialize and compress.
     [Params(3, 5, 7, 10, 15, 20)]
     public int NumberOfSets { get; set; }
 
     [GlobalSetup]
     public void Setup()
     {
-        redis = ConnectionMultiplexer.Connect("crunchy-redis:6379");
+        var redisEndpoint = Environment.GetEnvironmentVariable("REDIS_ENDPOINT");
+        redis = ConnectionMultiplexer.Connect(redisEndpoint);
         db = redis.GetDatabase();
         PopulateSets();
     }
@@ -37,7 +39,7 @@ public class RedisBenchmark
             db.KeyDelete(key);
 
             int[] values = Enumerable.Range(0, SetSize).Select(_ => random.Next(1, MaxValue)).ToArray();
-            var byteValue = MessagePackSerializer.Serialize(values);
+            var byteValue = MessagePackSerializer.Serialize(values, options);
             db.StringSet(key, byteValue);
         }
     }
@@ -45,7 +47,7 @@ public class RedisBenchmark
     private HashSet<int> FetchSet(string key)
     {
         var byteValue = db.StringGet(key);
-        return new HashSet<int>(MessagePackSerializer.Deserialize<int[]>(byteValue));
+        return new HashSet<int>(MessagePackSerializer.Deserialize<int[]>(byteValue, options));
     }
 
     private HashSet<int>[] FetchAllSets()
@@ -81,6 +83,15 @@ public class RedisBenchmark
     }
 
     [Benchmark]
+    public int[] MeasureSetUnionParallel()
+    {
+        var sets = FetchAllSets();
+        ConcurrentHashset _Data = new(sets[0]);
+        Parallel.For(1, sets.Length, i => _Data.UnionWith(sets[i]));
+        return _Data.GetData();
+    }
+
+    [Benchmark]
     public HashSet<int> MeasureSetDifference()
     {
         var sets = FetchAllSets();
@@ -97,6 +108,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        if (args.Length == 0)
+        {
+            Console.WriteLine("Please provide the Redis endpoint as a command-line argument.");
+            return;
+        }
+
+        Environment.SetEnvironmentVariable("REDIS_ENDPOINT", args[0], EnvironmentVariableTarget.Process);
+
         var config = ManualConfig.Create(DefaultConfig.Instance)
             .With(Job.Default
                 .WithWarmupCount(1)    // Number of warmup iterations
