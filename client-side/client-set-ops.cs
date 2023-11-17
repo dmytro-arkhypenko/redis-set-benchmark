@@ -121,6 +121,12 @@ public class RedisBenchmark
         }
         return result;
     }
+
+    [Benchmark]
+    public HashSet<int>[] MeasureFetchAllSets()
+    {
+        return FetchAllSets();
+    }
 }
 
 public class Program
